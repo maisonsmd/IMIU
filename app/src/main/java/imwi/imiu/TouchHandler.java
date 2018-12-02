@@ -144,7 +144,7 @@ class IMIUTouchHandler {
 
                 break;
             case MotionEvent.ACTION_CANCEL:
-                mVelocityTracker.recycle();
+                //mVelocityTracker.recycle();
                 break;
         }
     }

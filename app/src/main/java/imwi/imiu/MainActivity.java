@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.OnActionRecorededHandler, UsbSerial.OnUsbReconnectHandler {
@@ -260,6 +261,9 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
     double Radial = 8;
 
 
+    boolean isWatingAds = false;
+    boolean isWatingBoring = false;
+
     @Override
     public void OnActionRecorded(Actions action, Position startPosition, double velocity) {
         Log.i("touch", "" + startPosition.X + "," + startPosition.Y);
@@ -271,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
         XPos = touchHandler.getCurrentPosition().X;
         YPos = touchHandler.getCurrentPosition().Y;
 
-        int[] location = new int[2];
+       /* int[] location = new int[2];
         REyePupil.getLocationOnScreen(location);
         int x = location[0];
         int y = location[1];
@@ -281,41 +285,85 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
         RXDir = (Radial * XPos) / (Math.sqrt(((XPos * XPos + YPos * YPos))));
         RYDir = (Radial * YPos) / (Math.sqrt(((XPos * XPos + YPos * YPos))));
+        RXDir = Radial **/
 
-        RXDir = Radial *
+        Log.i("xy:", "" + RXDir + "-" + RYDir);
 
-                Log.i("xy:", "" + RXDir + "-" + RYDir);
 
         switch (action) {
 
             case TOUCH_DOWN:
+                isWatingBoring = false;
                 if (TouchTimeSpace > TimeToSad) {
                     MakeUnhappyFace();
-
                     IsHappyFeeling = false;
                 }
-
                 break;
             case TOUCH:
-
                 break;
             case MOVE:
                 Log.i("touch", "MOVE " + velocity);
-
-
                 break;
             case SWIPE:
+                isWatingAds = true;
+
                 Log.i("touch", "SWIPE " + velocity);
                 WipeSpeed = velocity;
 
-                if(startPosition.Y > 800){
+                /*if(startPosition.Y > 800){
                     OpenAds();
-                }
-                MakeRealMotion(velocity);
+                }*/
 
+                if (startPosition.Y > 1000) {
+                    CommercialMode = !CommercialMode;
+                    if (CommercialMode) {
+                        Toast.makeText(this.getApplicationContext(), "chế độ Thương mại!", Toast.LENGTH_SHORT).show();
+                    } else
+                        Toast.makeText(this.getApplicationContext(), "chế độ Thú cưng", Toast.LENGTH_SHORT).show();
+                }
+
+                final CountDownTimer countDownTimer = new CountDownTimer(3000, 100) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        if (!isWatingAds) {
+                            this.cancel();
+                        }
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        if (isWatingAds) {
+                            {
+                                if (CommercialMode)
+                                    OpenAds();
+                            }
+                            this.cancel();
+                        }
+                    }
+                }.start();
+
+                MakeRealMotion(velocity);
                 MakeHappyFace();
                 break;
             case TOUCH_UP:
+                isWatingAds = false;
+                isWatingBoring = true;
+
+                CountDownTimer countDownTimer1 = new CountDownTimer(10000, 100) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        if (!isWatingBoring)
+                            this.cancel();
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        MakeUnhappyFace();
+                        Toast.makeText(getApplicationContext(), "Chơi với tui đi!", Toast.LENGTH_SHORT).show();
+                        this.cancel();
+                    }
+                }.start();
+
                 Log.i("touch", "TOUCH_UP ");
 
                 XPos = 0;
