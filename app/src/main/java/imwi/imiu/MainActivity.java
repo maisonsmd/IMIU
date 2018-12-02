@@ -1,6 +1,7 @@
 package imwi.imiu;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
     private boolean isMouthOpened = false;
     private IMIUTouchHandler touchHandler;
+    boolean isOpenMouthTimerRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,14 +71,14 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
     void EyeMotion() {
         if (MiuMiuFace.GetFace() == CatFace.HAPPY_FACE) {
-            MiuMiuFace.MoveAndRotate(getString(R.string.right_eye_bg), 0, 2, 0, -8, -3, 3, 50, 50, 200, 1, true);
-            MiuMiuFace.MoveAndRotate(getString(R.string.left_eye_bg), 0, 2, 0, -8, -3, 3, 50, 50, 200, 1, true);
+            MiuMiuFace.MoveAndRotate(getString(R.string.right_eye_bg), 0, 2, 0, -16, -3, 3, 50, 50, 1000, 1, true);
+            MiuMiuFace.MoveAndRotate(getString(R.string.left_eye_bg), 0, 2, 0, -16, -3, 3, 50, 50, 1000, 1, true);
         } else if (MiuMiuFace.GetFace() == CatFace.NORMAL_FACE) {
-            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, 0, 4, 200, 1, true);
-            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, 0, 4, 200, 1, true);
+            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, -2, 4, 1000, 1, true);
+            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, -2, 4, 1000, 1, true);
         } else if (MiuMiuFace.GetFace() == CatFace.SAD_FACE) {
-            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, 0, 4, 200, 1, true);
-            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, 0, 4, 200, 1, true);
+            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, -2, 4, 1000, 1, true);
+            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, -2, 4, 1000, 1, true);
         }
     }
 
@@ -112,8 +114,18 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
     void OpenMouth(boolean isTurnOn) {
         if (isTurnOn == false) {
             OpenMouseTimer.cancel();
+            isOpenMouthTimerRunning = false;
             return;
         }
+
+        /*if (MiuMiuFace.GetFace() == CatFace.SAD_FACE) {
+            MiuMiuFace.SetMouth(CatFace.CLOSE_MOUTH);
+            OpenMouseTimer.cancel();
+            return;
+        }
+        else{
+            OpenMouseTimer.start();
+        }*/
 
         OpenMouseTimer = new CountDownTimer(10000, 100) {
             public void onFinish() {
@@ -126,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
                     isMouthOpened = false;
                 if (millisUntilFinished < 1000 && !isMouthOpened) {
                     isMouthOpened = true;
+                    PlaySound();
                     MiuMiuFace.SetMouth(CatFace.OPEN_MOUTH);
                 }
             }
@@ -220,8 +233,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
         MiuMiuFace.Rotate(getString(R.string.right_beard), 0, 6, 150, 0, 1000, 100, true);
     }
 
-    double map(double x, double in_min, double in_max, double out_min, double out_max)
-    {
+    double map(double x, double in_min, double in_max, double out_min, double out_max) {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 
@@ -236,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
             motionSpeed = 10000;
         }
 
-        if(motionSpeed > 10000)
+        if (motionSpeed > 10000)
             motionSpeed = 10000;
 
         motionSpeed = map(motionSpeed, 0, 10000, 20, 1);
@@ -270,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
 
     boolean isWatingAds = false;
-    boolean isWatingBoring = false;
+    boolean isWatingBoring = true;
 
     long lastTapMillis = 0;
     long currentTapMillis = 0;
@@ -320,6 +332,8 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
                 Log.i("touch", "MOVE " + velocity);
                 break;
             case SWIPE:
+                PlaySound();
+
                 isWatingAds = true;
 
                 Log.i("touch", "SWIPE " + velocity);
@@ -332,9 +346,9 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
                 if (startPosition.Y > 1000) {
                     CommercialMode = !CommercialMode;
                     if (CommercialMode) {
-                        Toast.makeText(this.getApplicationContext(), "chế độ Thương mại!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this.getApplicationContext(), "Commercial mode!", Toast.LENGTH_SHORT).show();
                     } else
-                        Toast.makeText(this.getApplicationContext(), "chế độ Thú cưng", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this.getApplicationContext(), "Pet mode", Toast.LENGTH_SHORT).show();
                 }
 
                 new CountDownTimer(3000, 100) {
@@ -374,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
                     @Override
                     public void onFinish() {
                         MakeUnhappyFace();
-                        Toast.makeText(getApplicationContext(), "Chơi với tui đi!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Play with me!", Toast.LENGTH_SHORT).show();
                         this.cancel();
                     }
                 }.start();
@@ -390,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
                 long TapInterval = currentTapMillis - lastTapMillis;
 
-                if(TapInterval < 200){
+                if (TapInterval < 200) {
                     EyelidMotion();
                     serial.Write("<action>4</action>");
                 }
@@ -400,16 +414,25 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
     private void MakeUnhappyFace() {
         MiuMiuFace.SetFace(CatFace.SAD_FACE);
-
+        OpenMouseTimer.cancel();
+        isOpenMouthTimerRunning = false;
         //MiuMiuFace.Move(getString(R.string.right_eye_bg), 0, (int)RXDir, 0, (int)RYDir,1, 0, false);
     }
 
     private void MakeNormalFace() {
         MiuMiuFace.SetFace(CatFace.NORMAL_FACE);
+        if (!isOpenMouthTimerRunning) {
+            isOpenMouthTimerRunning = true;
+            OpenMouseTimer.start();
+        }
     }
 
     private void MakeHappyFace() {
         MiuMiuFace.SetFace(CatFace.HAPPY_FACE);
+        if (!isOpenMouthTimerRunning) {
+            isOpenMouthTimerRunning = true;
+            OpenMouseTimer.start();
+        }
     }
 
     @Override
@@ -439,5 +462,10 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
     void OpenAds() {
         Intent adsIntent = new Intent(this, AdsActivity.class);
         startActivity(adsIntent);
+    }
+
+    void PlaySound() {
+        MediaPlayer player = MediaPlayer.create(MainActivity.this, R.raw.meow3);
+        player.start();
     }
 }
