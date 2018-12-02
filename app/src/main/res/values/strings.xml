@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">IMIU</string>
+    <string name="alpha_animation">AlphaAnimation</string>
+    <string name="rotate_animation">RotateAnimation</string>
+    <string name="scale_animation">ScaleAnimation</string>
+    <string name="translate_animation">TranslateAnimation</string>
+    <string name="animation_set">AnimationSet</string>
+    <string name="right_eye_bg">right eye background</string>
+    <string name="left_eye_bg">left eye background</string>
+    <string name="right_eye_pupil">right eye pupil</string>
+    <string name="left_eye_pupil">left eye pupil</string>
+    <string name="nose">nose</string>
+    <string name="mouth">mouth</string>
+    <string name="open_mouth">open mouth</string>
+    <string name="left_beard">left beard</string>
+    <string name="right_beard">right beard</string>
+    <string name="forehead">forehead</string>
+    <string name="left_eyelid">left eyelid</string>
+    <string name="right_eyelid">right eyelid</string>
+</resources>
