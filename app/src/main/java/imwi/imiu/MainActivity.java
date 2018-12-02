@@ -3,12 +3,10 @@ package imwi.imiu;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -71,14 +69,14 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
     void EyeMotion() {
         if (MiuMiuFace.GetFace() == CatFace.HAPPY_FACE) {
-            MiuMiuFace.MoveAndRotate(getString(R.string.right_eye_bg), 0, 2, 0, -8, -3, 3, 50, 50, 1000, 1, true);
-            MiuMiuFace.MoveAndRotate(getString(R.string.left_eye_bg), 0, 2, 0, -8, -3, 3, 50, 50, 1000, 1, true);
+            MiuMiuFace.MoveAndRotate(getString(R.string.right_eye_bg), 0, 2, 0, -8, -3, 3, 50, 50, 200, 1, true);
+            MiuMiuFace.MoveAndRotate(getString(R.string.left_eye_bg), 0, 2, 0, -8, -3, 3, 50, 50, 200, 1, true);
         } else if (MiuMiuFace.GetFace() == CatFace.NORMAL_FACE) {
-            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, 0, 4, 1000, 1, true);
-            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, 0, 4, 1000, 1, true);
+            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, 0, 4, 200, 1, true);
+            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, 0, 4, 200, 1, true);
         } else if (MiuMiuFace.GetFace() == CatFace.SAD_FACE) {
-            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, 0, 4, 1000, 1, true);
-            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, 0, 4, 1000, 1, true);
+            MiuMiuFace.Move(getString(R.string.right_eye_pupil), 0, 2, 0, 4, 200, 1, true);
+            MiuMiuFace.Move(getString(R.string.left_eye_pupil), 0, -2, 0, 4, 200, 1, true);
         }
     }
 
@@ -87,13 +85,13 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
     }
 
     void BeardMotion() {
-        MiuMiuFace.Rotate(getString(R.string.right_beard), 0, 4, 150, 0, 2000, 1, true);
-        MiuMiuFace.Rotate(getString(R.string.left_beard), 0, -4, 0, 0, 2000, 1, true);
+        MiuMiuFace.Rotate(getString(R.string.right_beard), 0, 4, 150, 0, 1000, 1, true);
+        MiuMiuFace.Rotate(getString(R.string.left_beard), 0, -4, 0, 0, 1000, 1, true);
     }
 
     void MouthMotion() {
-        MiuMiuFace.Scale(getString(R.string.mouth), 1.0f, 1.1f, 1.0f, 1.1f, Mouth.getWidth() / 2, 0, 2000, 1, true);
-        MiuMiuFace.Scale(getString(R.string.forehead), 1.0f, 1.0f, 1.0f, 1.05f, Mouth.getWidth() / 2, 0, 2000, 1, true);
+        MiuMiuFace.Scale(getString(R.string.mouth), 1.0f, 1.1f, 1.0f, 1.1f, Mouth.getWidth() / 2, 0, 1000, 1, true);
+        MiuMiuFace.Scale(getString(R.string.forehead), 1.0f, 1.0f, 1.0f, 1.05f, Mouth.getWidth() / 2, 0, 1000, 1, true);
 
     }
 
@@ -222,6 +220,11 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
         MiuMiuFace.Rotate(getString(R.string.right_beard), 0, 6, 150, 0, 1000, 100, true);
     }
 
+    double map(double x, double in_min, double in_max, double out_min, double out_max)
+    {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+    }
+
     public void MoveAndRotate(View v) {
         MiuMiuFace.MoveAndRotate(getString(R.string.mouth), 0, 40, 0, 15, 0, 10, 50, 0, 1000, 100, true);
     }
@@ -232,7 +235,12 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
         if (velocity > 10000) {
             motionSpeed = 10000;
         }
-        motionSpeed = (int) ((10000 - motionSpeed) / 70);
+
+        if(motionSpeed > 10000)
+            motionSpeed = 10000;
+
+        motionSpeed = map(motionSpeed, 0, 10000, 20, 1);
+
         if (motionSpeed < 10) {
             motionSpeed = 10;
         }
@@ -264,6 +272,10 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
     boolean isWatingAds = false;
     boolean isWatingBoring = false;
 
+    long lastTapMillis = 0;
+    long currentTapMillis = 0;
+    boolean isWatingTap = false;
+
     @Override
     public void OnActionRecorded(Actions action, Position startPosition, double velocity) {
         Log.i("touch", "" + startPosition.X + "," + startPosition.Y);
@@ -289,15 +301,18 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
 
         Log.i("xy:", "" + RXDir + "-" + RYDir);
 
+        currentTapMillis = System.currentTimeMillis();
 
         switch (action) {
-
             case TOUCH_DOWN:
                 isWatingBoring = false;
                 if (TouchTimeSpace > TimeToSad) {
                     MakeUnhappyFace();
                     IsHappyFeeling = false;
                 }
+
+                isWatingTap = true;
+                lastTapMillis = currentTapMillis;
                 break;
             case TOUCH:
                 break;
@@ -322,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
                         Toast.makeText(this.getApplicationContext(), "chế độ Thú cưng", Toast.LENGTH_SHORT).show();
                 }
 
-                final CountDownTimer countDownTimer = new CountDownTimer(3000, 100) {
+                new CountDownTimer(3000, 100) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                         if (!isWatingAds) {
@@ -349,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
                 isWatingAds = false;
                 isWatingBoring = true;
 
-                CountDownTimer countDownTimer1 = new CountDownTimer(10000, 100) {
+                new CountDownTimer(10000, 100) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                         if (!isWatingBoring)
@@ -372,6 +387,13 @@ public class MainActivity extends AppCompatActivity implements IMIUTouchHandler.
                 TouchTimeSpace = System.currentTimeMillis();
                 CurrentTime = System.currentTimeMillis();
                 MakeNormalFace();
+
+                long TapInterval = currentTapMillis - lastTapMillis;
+
+                if(TapInterval < 200){
+                    EyelidMotion();
+                    serial.Write("<action>4</action>");
+                }
                 break;
         }
     }
